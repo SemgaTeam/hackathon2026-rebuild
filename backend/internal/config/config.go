@@ -9,6 +9,7 @@ import (
 type Config struct {
 	Limits Limits
 	AllowedExtensions map[string]struct{}
+	AllowedMimeTypes map[string]struct{}
 	UploadPath string
 }
 
@@ -49,6 +50,11 @@ func GetConfig() (*Config, error) {
 		".wav": {},
 		".ogg": {},
 	}
+	allowedMimeTypes := map[string]struct{} {
+		"audio/mpeg": {},
+		"audio/wav": {},
+		"audio/ogg": {},
+	}
 
 	uploadPath := "uploads"
 
@@ -58,6 +64,7 @@ func GetConfig() (*Config, error) {
 			MaxVideoSize: videoSize,
 		},
 		AllowedExtensions: allowedExtensions,
+		AllowedMimeTypes: allowedMimeTypes,
 		UploadPath: uploadPath,
 	}
 

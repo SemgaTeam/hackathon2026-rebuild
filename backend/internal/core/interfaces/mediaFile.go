@@ -1,12 +1,13 @@
 package interfaces
 
 import (
-	"time"
-
 	"github.com/SemgaTeam/semga-stream/internal/core/entities"
+
+	"mime/multipart"
+	"time"
 )
 
 type IMediaFile interface {
 	Save(media *entities.MediaFile) error
-	GetDuration(path string) (*time.Duration, error)
+	GetDuration(file multipart.File, fileHeader multipart.FileHeader) (*time.Duration, error)
 }

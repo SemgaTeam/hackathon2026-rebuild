@@ -27,7 +27,7 @@ func NewSaveFileUseCase(conf *config.Config, storage i.IStorage, mediaFile i.IMe
 	}
 }
 
-func (uc *SaveFileUseCase) Execute(ctx context.Context, fileHeader multipart.FileHeader, duration time.Duration, ownerId uuid.UUID) (string, *entities.MediaFile, error) {
+func (uc *SaveFileUseCase) Execute(ctx context.Context, file multipart.File, fileHeader multipart.FileHeader, ownerId uuid.UUID) (string, *entities.MediaFile, error) {
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
 	uniqueName := uuid.New().String() + ext
 
@@ -40,6 +40,10 @@ func (uc *SaveFileUseCase) Execute(ctx context.Context, fileHeader multipart.Fil
 
 	mimeType := fileHeader.Header.Get("Content-Type")
 	filename := filepath.Base(fileHeader.Filename)
+	duration, err := uc.mediaFile.GetDuration(file, fileHeader)
+	if err != nil {
+		return "", nil, err
+	}
 
 	mediaFile := entities.MediaFile{
 		OwnerID: ownerId,

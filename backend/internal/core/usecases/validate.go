@@ -30,5 +30,10 @@ func (uc *ValidateFileUseCase) Execute(ctx context.Context, file multipart.File,
 		return e.ErrFileTooBig
 	}
 
+	mimeType := fileHeader.Header.Get("Content-Type")
+	if _, ok := uc.conf.AllowedMimeTypes[mimeType]; !ok {
+		return e.ErrInvalidMIMEType
+	}
+
 	return nil
 }
