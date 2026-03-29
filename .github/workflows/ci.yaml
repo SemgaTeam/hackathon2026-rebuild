@@ -1,0 +1,29 @@
+name: main CI pipeline
+
+on:
+  push:
+    paths-ignore:
+      - ".github/**"
+    branches: ["main"]
+
+jobs:
+  test:
+    name: Run Tests (short)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache: true
+
+      - name: Download Dependencies
+        run: go mod download
+
+      - name: Run Tests
+        run: go test -short -v ./...

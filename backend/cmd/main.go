@@ -12,5 +12,5 @@ func main() {
 		return c.String(http.StatusOK, "hello world")
 	})
 
-	echo.Start("0.0.0.0")
+	echo.Logger.Error(echo.Start("0.0.0.0:8080"))
 }
