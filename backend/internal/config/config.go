@@ -8,7 +8,8 @@ import (
 
 type Config struct {
 	Limits Limits
-	AllowedExtensions AllowedExtensions
+	AllowedExtensions map[string]struct{}
+	UploadPath string
 }
 
 type (
@@ -16,8 +17,6 @@ type (
 		MaxAudioSize int64
 		MaxVideoSize int64
 	}
-
-	AllowedExtensions map[string]struct{}
 )
 
 func GetConfig() (*Config, error) {
@@ -45,11 +44,13 @@ func GetConfig() (*Config, error) {
 		return nil, errors.New("MAX_VIDEO_SIZE is invalid")
 	}
 
-	var allowedExtensions AllowedExtensions = map[string]struct{} {
+	allowedExtensions := map[string]struct{} {
 		".mp3": {},
 		".wav": {},
 		".ogg": {},
 	}
+
+	uploadPath := "uploads"
 
 	conf := Config{
 		Limits: Limits{
@@ -57,6 +58,7 @@ func GetConfig() (*Config, error) {
 			MaxVideoSize: videoSize,
 		},
 		AllowedExtensions: allowedExtensions,
+		UploadPath: uploadPath,
 	}
 
 	return &conf, nil
