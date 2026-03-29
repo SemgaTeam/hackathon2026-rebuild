@@ -7,14 +7,14 @@ import (
 )
 
 type Config struct {
-	Limits
-	AllowedExtensions
+	Limits Limits
+	AllowedExtensions AllowedExtensions
 }
 
 type (
 	Limits struct {
-		MaxAudioSize int
-		MaxVideoSize int
+		MaxAudioSize int64
+		MaxVideoSize int64
 	}
 
 	AllowedExtensions map[string]struct{}
@@ -30,7 +30,7 @@ func GetConfig() (*Config, error) {
 	if audioSizeStr == "" {
 		return nil, errors.New("MAX_AUDIO_SIZE is not set")
 	}
-	audioSize, err := strconv.Atoi(audioSizeStr)
+	audioSize, err := strconv.ParseInt(audioSizeStr, 10, 64)
 	if err != nil {
 		return nil, errors.New("MAX_AUDIO_SIZE is invalid")
 	}
@@ -40,7 +40,7 @@ func GetConfig() (*Config, error) {
 		return nil, errors.New("MAX_VIDEO_SIZE is not set")
 	}
 
-	videoSize, err := strconv.Atoi(videoSizeStr)
+	videoSize, err := strconv.ParseInt(videoSizeStr, 10, 64)
 	if err != nil {
 		return nil, errors.New("MAX_VIDEO_SIZE is invalid")
 	}
