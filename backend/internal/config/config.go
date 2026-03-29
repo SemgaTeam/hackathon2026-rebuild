@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	Limits
+	AllowedExtensions
 }
 
 type (
@@ -15,6 +16,8 @@ type (
 		MaxAudioSize int
 		MaxVideoSize int
 	}
+
+	AllowedExtensions map[string]struct{}
 )
 
 func GetConfig() (*Config, error) {
@@ -42,11 +45,18 @@ func GetConfig() (*Config, error) {
 		return nil, errors.New("MAX_VIDEO_SIZE is invalid")
 	}
 
+	var allowedExtensions AllowedExtensions = map[string]struct{} {
+		".mp3": {},
+		".wav": {},
+		".ogg": {},
+	}
+
 	conf := Config{
-		Limits{
+		Limits: Limits{
 			MaxAudioSize: audioSize,
 			MaxVideoSize: videoSize,
 		},
+		AllowedExtensions: allowedExtensions,
 	}
 
 	return &conf, nil
