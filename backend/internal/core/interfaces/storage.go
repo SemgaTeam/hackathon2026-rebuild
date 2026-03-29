@@ -4,4 +4,5 @@ import "context"
 
 type IStorage interface {
 	GenerateUploadURL(ctx context.Context, path string) (string, error)
+	Delete(ctx context.Context, path string) error
 }
