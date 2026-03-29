@@ -40,7 +40,7 @@ func (uc *SaveFileUseCase) Execute(ctx context.Context, file multipart.File, fil
 
 	mimeType := fileHeader.Header.Get("Content-Type")
 	filename := filepath.Base(fileHeader.Filename)
-	duration, err := uc.mediaFile.GetDuration(file, fileHeader)
+	duration, err := uc.mediaFile.GetDuration(ctx, file, fileHeader)
 	if err != nil {
 		return "", nil, err
 	}
@@ -56,7 +56,7 @@ func (uc *SaveFileUseCase) Execute(ctx context.Context, file multipart.File, fil
 		CreatedAt: time.Now(),
 	}
 
-	if err := uc.mediaFile.Save(&mediaFile); err != nil {
+	if err := uc.mediaFile.Save(ctx, &mediaFile); err != nil {
 		return "", nil, err
 	}
 
