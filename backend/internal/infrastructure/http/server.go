@@ -1,7 +1,7 @@
 package http
 
 import (
-	"template/internal/config"
+	"github.com/SemgaTeam/semga-stream/internal/config"
 	"github.com/labstack/echo/v4"
 )
 
