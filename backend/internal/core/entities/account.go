@@ -2,6 +2,7 @@ package entities
 
 import (
 	"regexp"
+	"slices"
 	"time"
 
 	domainErrors "github.com/SemgaTeam/semga-stream/internal/core/errors"
@@ -17,12 +18,13 @@ type Account struct {
 	FullName     string
 	Username     string
 	PasswordHash string
-	Roles        []string
+	Roles        []Role
 
 	CreatedAt time.Time
 }
 
-func NewAccount(id, fullName, username, passwordHash string, roles []string, createdAt time.Time) (*Account, error) {
+// Client code solved id, cause id is set byt database, you just create not empty id, createdAt also controlled by client
+func NewAccount(id, fullName, username, passwordHash string, roles []Role, createdAt time.Time) (*Account, error) {
 	if id == "" {
 		return nil, domainErrors.NewError("invalid id: cannot be empty")
 	}
@@ -55,4 +57,11 @@ func NewAccount(id, fullName, username, passwordHash string, roles []string, cre
 		PasswordHash: passwordHash,
 
 		CreatedAt: createdAt}, nil
+}
+func (a *Account) HasRole(role Role) bool {
+	return slices.Contains(a.Roles, role)
+}
+
+func (a *Account) IsAdmin() bool {
+	return a.HasRole("admin")
 }
