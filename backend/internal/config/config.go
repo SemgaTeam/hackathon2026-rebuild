@@ -5,11 +5,13 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/labstack/echo/v4"
 )
 
 type Config struct {
 	Limits Limits
+	Signing Signing
 	AllowedExtensions map[string]struct{}
 	AllowedMimeTypes map[string]struct{}
 	AllowedOrigins []string
@@ -21,6 +23,11 @@ type (
 	Limits struct {
 		MaxAudioSize int64
 		MaxVideoSize int64
+	}
+	
+	Signing struct {
+		Key string
+		Method jwt.SigningMethod
 	}
 )
 
@@ -49,6 +56,13 @@ func GetConfig() (*Config, error) {
 		return nil, errors.New("MAX_VIDEO_SIZE is invalid")
 	}
 
+	signingKey := os.Getenv("SIGNING_KEY")
+	if signingKey == "" {
+		return nil, errors.New("empty SIGNING_KEY")
+	}
+
+	signingMethod := jwt.SigningMethodHS256
+
 	allowedExtensions := map[string]struct{} {
 		".mp3": {},
 		".wav": {},
@@ -65,10 +79,15 @@ func GetConfig() (*Config, error) {
 
 	uploadPath := "uploads"
 
+
 	conf := Config{
 		Limits: Limits{
 			MaxAudioSize: audioSize,
 			MaxVideoSize: videoSize,
+		},
+		Signing: Signing{
+			Key: signingKey,
+			Method: signingMethod,
 		},
 		AllowedExtensions: allowedExtensions,
 		AllowedMimeTypes: allowedMimeTypes,
