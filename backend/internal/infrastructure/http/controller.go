@@ -1,13 +1,17 @@
 package http
 
 import (
+	"errors"
+
 	"github.com/SemgaTeam/semga-stream/internal/config"
+	"github.com/SemgaTeam/semga-stream/internal/core/entities"
 	uc "github.com/SemgaTeam/semga-stream/internal/core/usecases"
 	e "github.com/SemgaTeam/semga-stream/internal/infrastructure/http/errors"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	echojwt "github.com/labstack/echo-jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	echojwt "github.com/labstack/echo-jwt/v4"
 
 	"net/http"
 	"path/filepath"
@@ -38,6 +42,9 @@ func (ctr *Controller) SetupHandlers() {
 		TokenLookup:   "cookie:access_token",
 		ContextKey:    "access_token",
 		SigningMethod: ctr.conf.Signing.Method.Alg(),
+		NewClaimsFunc: func(c echo.Context) jwt.Claims {
+			return new(entities.Claims)
+		},
 	}))
 	ctr.e.Use(middleware.AddTrailingSlash())
 	ctr.e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -60,6 +67,24 @@ func (ctr *Controller) SetupHandlers() {
 }
 
 func (ctr *Controller) UploadHandler(c echo.Context) error {
+	token, ok := c.Get("access_token").(*jwt.Token)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, map[string]any{
+			"error": "unauthorized",
+		})
+	}
+
+	claims, ok := token.Claims.(*entities.Claims)
+	if !ok {
+		return e.InternalServerError(errors.New("token claims are invalid"))
+	}
+
+	userIdStr := claims.Subject
+	userId, err := uuid.Parse(userIdStr)
+	if err != nil {
+		return e.Unauthorized("unauthorized")
+	}
+
 	fileHeader, err := c.FormFile("file")	
 	if err != nil {
 		return e.BadRequest("file not provided")
@@ -81,8 +106,7 @@ func (ctr *Controller) UploadHandler(c echo.Context) error {
 
 	ctx := c.Request().Context()
 
-	var ownerId uuid.UUID
-	uploadUrl, _, err := ctr.saveUC.Execute(ctx, fileHeader, ownerId) 
+	uploadUrl, _, err := ctr.saveUC.Execute(ctx, fileHeader, userId) 
 	if err != nil {
 		return err
 	}

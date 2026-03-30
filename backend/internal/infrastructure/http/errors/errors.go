@@ -25,6 +25,13 @@ func BadRequest(msg string) HTTPError {
 	}
 }
 
+func Unauthorized(msg string) HTTPError {
+	return HTTPError{
+		Msg: msg,
+		Code: http.StatusUnauthorized,
+	}
+}
+
 func InternalServerError(err error) HTTPError {
 	return HTTPError{
 		Msg: "internal server error",
