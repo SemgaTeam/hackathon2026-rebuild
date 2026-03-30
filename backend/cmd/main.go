@@ -1,16 +1,18 @@
 package main
 
 import (
-	e "github.com/labstack/echo/v4"
-	"net/http"
+	"github.com/SemgaTeam/semga-stream/internal/infrastructure/http"
+	"github.com/SemgaTeam/semga-stream/internal/config"
+	"github.com/labstack/echo/v4"
 )
 
 func main() {
-	echo := e.New()
+	conf, err := config.GetConfig()
+	if err != nil {
+		panic(err)
+	}
 
-	echo.GET("/", func (c e.Context) error {
-		return c.String(http.StatusOK, "hello world")
-	})
+	e := echo.New()
 
-	echo.Logger.Error(echo.Start("0.0.0.0:8080"))
+	http.SetupHandlers(conf, e)
 }

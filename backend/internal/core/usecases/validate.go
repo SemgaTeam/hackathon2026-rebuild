@@ -20,7 +20,7 @@ func NewValidateFileUseCase(conf *config.Config) *ValidateFileUseCase {
 	}
 }
 
-func (uc *ValidateFileUseCase) Execute(ctx context.Context, file multipart.File, fileHeader multipart.FileHeader) error {
+func (uc *ValidateFileUseCase) Execute(ctx context.Context, fileHeader *multipart.FileHeader) error {
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
 	if _, ok := uc.conf.AllowedExtensions[ext]; !ok {
 		return e.ErrInvalidExtension

@@ -4,12 +4,16 @@ import (
 	"errors"
 	"os"
 	"strconv"
+
+	"github.com/labstack/echo/v4"
 )
 
 type Config struct {
 	Limits Limits
 	AllowedExtensions map[string]struct{}
 	AllowedMimeTypes map[string]struct{}
+	AllowedOrigins []string
+	AllowedHeaders []string
 	UploadPath string
 }
 
@@ -56,6 +60,9 @@ func GetConfig() (*Config, error) {
 		"audio/ogg": {},
 	}
 
+	allowedOrigins := []string {"http://localhost:5173"} // TODO: get in env variable
+	allowedHeaders := []string {echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept}
+
 	uploadPath := "uploads"
 
 	conf := Config{
@@ -65,6 +72,8 @@ func GetConfig() (*Config, error) {
 		},
 		AllowedExtensions: allowedExtensions,
 		AllowedMimeTypes: allowedMimeTypes,
+		AllowedOrigins: allowedOrigins,
+		AllowedHeaders: allowedHeaders,
 		UploadPath: uploadPath,
 	}
 

@@ -27,7 +27,7 @@ func NewSaveFileUseCase(conf *config.Config, storage i.IStorage, mediaFile i.IMe
 	}
 }
 
-func (uc *SaveFileUseCase) Execute(ctx context.Context, file multipart.File, fileHeader multipart.FileHeader, ownerId uuid.UUID) (string, *entities.MediaFile, error) {
+func (uc *SaveFileUseCase) Execute(ctx context.Context, file *multipart.File, fileHeader *multipart.FileHeader, ownerId uuid.UUID) (string, *entities.MediaFile, error) {
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
 	uniqueName := uuid.New().String() + ext
 
