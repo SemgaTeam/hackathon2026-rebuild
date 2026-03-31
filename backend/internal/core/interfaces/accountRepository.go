@@ -9,5 +9,5 @@ type AccountRepository interface {
 	FindAll() ([]entities.Account, error)
 	UpdateAccount(account *entities.Account) error
 	DeleteAccount(id string) error
-	ExistsByUsername(username string) bool
+	ExistsByUsername(username string) (bool, error)
 }
