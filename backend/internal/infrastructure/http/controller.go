@@ -21,21 +21,25 @@ import (
 type Controller struct {
 	conf *config.Config
 	e *echo.Echo
-	validateUC *uc.ValidateFileUseCase
 	saveUC *uc.SaveFileUseCase
+	getFilesUC *uc.GetUserFilesUseCase
+	deleteFileUC *uc.DeleteFileUseCase
 }
 
-func NewHTTPController(conf *config.Config, e *echo.Echo, validateUC *uc.ValidateFileUseCase, saveUC *uc.SaveFileUseCase) *Controller {
+func NewHTTPController(conf *config.Config, e *echo.Echo, saveUC *uc.SaveFileUseCase, getFilesUC *uc.GetUserFilesUseCase, deleteFileUC *uc.DeleteFileUseCase) *Controller {
 	return &Controller{
 		conf,
 		e,
-		validateUC,
 		saveUC,
+		getFilesUC,
+		deleteFileUC,
 	}
 }
 
 func (ctr *Controller) SetupHandlers() {
 	api := ctr.e.Group("/api")
+	me := api.Group("/me")
+	files := me.Group("/files")
 
 	ctr.e.Use(echojwt.WithConfig(echojwt.Config{
 		SigningKey:    []byte(ctr.conf.Signing.Key),
@@ -63,7 +67,9 @@ func (ctr *Controller) SetupHandlers() {
 		}
 	}) 
 
-	api.POST("/upload", ctr.UploadHandler)
+	files.POST("/upload", ctr.UploadHandler)
+	files.GET("", ctr.GetUserFiles)
+	files.DELETE("/:id", ctr.DeleteFile)
 }
 
 func (ctr *Controller) UploadHandler(c echo.Context) error {
@@ -116,4 +122,75 @@ func (ctr *Controller) UploadHandler(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, response)
+}
+
+func (ctr *Controller) GetUserFiles(c echo.Context) error {
+	token, ok := c.Get("access_token").(*jwt.Token)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, map[string]any{
+			"error": "unauthorized",
+		})
+	}
+
+	claims, ok := token.Claims.(*entities.Claims)
+	if !ok {
+		return e.InternalServerError(errors.New("token claims are invalid"))
+	}
+
+	userIdStr := claims.Subject
+	userId, err := uuid.Parse(userIdStr)
+	if err != nil {
+		return e.Unauthorized("unauthorized")
+	}
+
+	ctx := c.Request().Context()
+
+	files, err := ctr.getFilesUC.Execute(ctx, userId)
+	if err != nil {
+		return err
+	}
+
+	response := map[string]interface{} {
+		"data": files,
+	}
+
+	return c.JSON(http.StatusOK, response)
+}
+
+func (ctr *Controller) DeleteFile(c echo.Context) error {
+	token, ok := c.Get("access_token").(*jwt.Token)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, map[string]any{
+			"error": "unauthorized",
+		})
+	}
+
+	claims, ok := token.Claims.(*entities.Claims)
+	if !ok {
+		return e.InternalServerError(errors.New("token claims are invalid"))
+	}
+
+	userIdStr := claims.Subject
+	_, err := uuid.Parse(userIdStr)
+	if err != nil {
+		return e.Unauthorized("unauthorized")
+	}
+
+	idStr := c.Param("id")
+	if idStr == "" {
+		return e.BadRequest("empty id")
+	}
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		return e.BadRequest("invalid id")
+	}
+
+	ctx := c.Request().Context()
+
+	if err := ctr.deleteFileUC.Execute(ctx, id); err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusNoContent)
 }

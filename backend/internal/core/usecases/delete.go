@@ -3,6 +3,7 @@ package usecases
 import (
 	"github.com/SemgaTeam/semga-stream/internal/config"
 	i "github.com/SemgaTeam/semga-stream/internal/core/interfaces"
+	"github.com/google/uuid"
 
 	"context"
 )
@@ -21,12 +22,13 @@ func NewDeleteFileUseCase(conf *config.Config, mediaFile i.IMediaFile, storage i
 	}
 }
 
-func (uc *DeleteFileUseCase) Execute(ctx context.Context, path string) error {
-	file, err := uc.mediaFile.ByPath(ctx, path)
+func (uc *DeleteFileUseCase) Execute(ctx context.Context, id uuid.UUID) error {
+	file, err := uc.mediaFile.ByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
+	path := string([]byte(file.FilePath)) // full copy
 	file.FilePath = ""
 	file.IsDeleted = true
 

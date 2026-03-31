@@ -7,14 +7,14 @@ import (
 )
 
 type MediaFile struct {
-	ID              uuid.UUID
-	OwnerID         uuid.UUID
-	Type            string
-	FileName        string
-	FilePath        string
-	FileSize        int64
-	MimeType        string
-	DurationSeconds int
-	CreatedAt       time.Time
-	IsDeleted       bool
+	ID              uuid.UUID `json:"id"`
+	OwnerID         uuid.UUID `json:"owner_id"`
+	Type            string `json:"type"`
+	FileName        string `json:"file_name"`
+	FilePath        string `json:"file_path"`
+	FileSize        int64 `json:"file_size"`
+	MimeType        string `json:"mime_type"`
+	DurationSeconds int `json:"duration_seconds"`
+	CreatedAt       time.Time `json:"created_at"`
+	IsDeleted       bool `json:"is_deleted"`
 }
