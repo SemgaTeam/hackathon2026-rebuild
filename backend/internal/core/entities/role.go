@@ -3,7 +3,7 @@ package entities
 type Role string
 
 const (
-	Admin Role = "admin"
-	User  Role = "user"
-	Host  Role = "host"
+	RoleAdmin Role = "admin"
+	RoleUser  Role = "user"
+	RoleHost  Role = "host"
 )
