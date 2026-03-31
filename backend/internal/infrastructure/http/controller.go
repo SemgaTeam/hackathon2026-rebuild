@@ -37,6 +37,7 @@ func NewHTTPController(conf *config.Config, e *echo.Echo, saveUC *uc.SaveFileUse
 }
 
 func (ctr *Controller) SetupHandlers() {
+	ctr.e.HTTPErrorHandler = errorHandler
 	api := ctr.e.Group("/api")
 	me := api.Group("/me")
 	files := me.Group("/files")
