@@ -23,11 +23,9 @@ type Account struct {
 	CreatedAt time.Time
 }
 
-// Client code solved id, cause id is set byt database, you just create not empty id, createdAt also controlled by client
+// Empty id if just created, not from ps, id is filled if it is from persistency storage
+// Creating time defined by client
 func NewAccount(id, fullName, username, passwordHash string, roles []Role, createdAt time.Time) (*Account, error) {
-	if id == "" {
-		return nil, domainErrors.NewError("invalid id: cannot be empty")
-	}
 
 	if !usernameRegex.MatchString(username) {
 		return nil, domainErrors.NewError("invalid username: only latin letters and digits are allowed")
