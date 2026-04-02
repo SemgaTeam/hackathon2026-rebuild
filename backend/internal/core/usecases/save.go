@@ -17,13 +17,15 @@ type SaveFileUseCase struct {
 	conf *config.Config
 	storage i.IStorage
 	mediaFile i.IMediaFile
+	audioAnalyzer i.IAudioAnalyzer
 }
 
-func NewSaveFileUseCase(conf *config.Config, storage i.IStorage, mediaFile i.IMediaFile) *SaveFileUseCase {
+func NewSaveFileUseCase(conf *config.Config, storage i.IStorage, mediaFile i.IMediaFile, audioAnalyzer i.IAudioAnalyzer) *SaveFileUseCase {
 	return &SaveFileUseCase{
 		conf,
 		storage,
 		mediaFile,
+		audioAnalyzer,
 	}
 }
 
@@ -40,7 +42,7 @@ func (uc *SaveFileUseCase) Execute(ctx context.Context, fileHeader *multipart.Fi
 
 	mimeType := fileHeader.Header.Get("Content-Type")
 	filename := filepath.Base(fileHeader.Filename)
-	duration, err := uc.mediaFile.GetDuration(ctx, fileHeader)
+	duration, err := uc.audioAnalyzer.GetDuration(ctx, fileHeader)
 	if err != nil {
 		return "", nil, err
 	}
