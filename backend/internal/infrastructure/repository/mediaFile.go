@@ -6,8 +6,10 @@ import (
 	e "github.com/SemgaTeam/semga-stream/internal/core/errors"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5"
 
 	"context"
+	"errors"
 )
 
 type MediaFileRepository struct {
@@ -72,4 +74,23 @@ func (r *MediaFileRepository) Update(ctx context.Context, media *entities.MediaF
 	}
 
 	return nil
+}
+
+func (r *MediaFileRepository) ByID(ctx context.Context, id uuid.UUID) (*entities.MediaFile, error) {
+	var mediaFile entities.MediaFile
+	res := r.db.QueryRow(ctx, 
+		`SELECT id, owner_id, type, file_name, file_path, file_size, mime_type, duration_seconds, created_at, is_deleted
+		 FROM media_files
+		 WHERE id = $1`,
+		id,
+	)
+	err := res.Scan(&mediaFile.ID, &mediaFile.OwnerID, &mediaFile.FileName, &mediaFile.FilePath, &mediaFile.FileSize, &mediaFile.MimeType, &mediaFile.DurationSeconds, &mediaFile.CreatedAt, &mediaFile.IsDeleted)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, e.Unknown(err)
+	}
+
+	return &mediaFile, nil
 }
