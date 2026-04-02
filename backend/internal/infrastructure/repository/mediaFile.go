@@ -94,3 +94,43 @@ func (r *MediaFileRepository) ByID(ctx context.Context, id uuid.UUID) (*entities
 
 	return &mediaFile, nil
 }
+
+func (r *MediaFileRepository) ByUserID(ctx context.Context, userID uuid.UUID) (*entities.MediaFile, error) {
+	var mediaFile entities.MediaFile
+	res := r.db.QueryRow(ctx, 
+		`SELECT id, owner_id, type, file_name, file_path, file_size, mime_type, duration_seconds, created_at, is_deleted
+		 FROM media_files
+		 WHERE owner_id = $1`,
+		userID,
+	)
+
+	err := res.Scan(&mediaFile.ID, &mediaFile.OwnerID, &mediaFile.FileName, &mediaFile.FilePath, &mediaFile.FileSize, &mediaFile.MimeType, &mediaFile.DurationSeconds, &mediaFile.CreatedAt, &mediaFile.IsDeleted)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, e.Unknown(err)
+	}
+
+	return &mediaFile, nil
+}
+
+func (r *MediaFileRepository) ByPath(ctx context.Context, path string) (*entities.MediaFile, error) {
+	var mediaFile entities.MediaFile
+	res := r.db.QueryRow(ctx, 
+		`SELECT id, owner_id, type, file_name, file_path, file_size, mime_type, duration_seconds, created_at, is_deleted
+		 FROM media_files
+		 WHERE file_path = $1`,
+		path,
+	)
+
+	err := res.Scan(&mediaFile.ID, &mediaFile.OwnerID, &mediaFile.FileName, &mediaFile.FilePath, &mediaFile.FileSize, &mediaFile.MimeType, &mediaFile.DurationSeconds, &mediaFile.CreatedAt, &mediaFile.IsDeleted)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, e.Unknown(err)
+	}
+
+	return &mediaFile, nil
+}
