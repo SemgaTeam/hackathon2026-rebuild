@@ -1,6 +1,6 @@
 package interfaces
 
-type PasswordHasher interface {
+type IPasswordHasher interface {
 	Hash(password string) (string, error)
 	Compare(password, hash string) bool
 }

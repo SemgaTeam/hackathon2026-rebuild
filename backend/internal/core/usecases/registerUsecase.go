@@ -18,10 +18,10 @@ type RegisterAccountDTO struct {
 
 type RegisterAccountUsecase struct {
 	accountRepo interfaces.AccountRepository
-	hasher      interfaces.PasswordHasher
+	hasher      interfaces.IPasswordHasher
 }
 
-func NewRegisterAccountUsecase(r interfaces.AccountRepository, h interfaces.PasswordHasher) *RegisterAccountUsecase {
+func NewRegisterAccountUsecase(r interfaces.AccountRepository, h interfaces.IPasswordHasher) *RegisterAccountUsecase {
 	return &RegisterAccountUsecase{
 		accountRepo: r,
 		hasher:      h,
