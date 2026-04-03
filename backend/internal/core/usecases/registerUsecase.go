@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/SemgaTeam/semga-stream/internal/config"
 	"github.com/SemgaTeam/semga-stream/internal/core/entities"
 	"github.com/SemgaTeam/semga-stream/internal/core/interfaces"
 
@@ -17,12 +18,14 @@ type RegisterAccountDTO struct {
 }
 
 type RegisterAccountUsecase struct {
+	config      *config.Config
 	accountRepo interfaces.AccountRepository
 	hasher      interfaces.IPasswordHasher
 }
 
-func NewRegisterAccountUsecase(r interfaces.AccountRepository, h interfaces.IPasswordHasher) *RegisterAccountUsecase {
+func NewRegisterAccountUsecase(c *config.Config, r interfaces.AccountRepository, h interfaces.IPasswordHasher) *RegisterAccountUsecase {
 	return &RegisterAccountUsecase{
+		config:      c,
 		accountRepo: r,
 		hasher:      h,
 	}
