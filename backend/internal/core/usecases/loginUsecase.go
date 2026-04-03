@@ -44,7 +44,7 @@ func (l *LoginUsecase) Execute(ctx context.Context, ld LoginDTO) (dto.Tokens, er
 		return dto.Tokens{}, domainErrors.NewError("credentials error")
 	}
 
-	tokens, err := l.tokenService.GenerateTokenNRefToken(account)
+	tokens, err := l.tokenService.GenerateTokens(account)
 	if err != nil {
 		return dto.Tokens{}, err
 	}

@@ -6,6 +6,7 @@ import (
 )
 
 type IToken interface {
-	GenerateTokenNRefToken(account *entities.Account) (dto.Tokens, error)
-	VerifyRefToken(refToken string) (string, error)
+	GenerateTokens(account *entities.Account) (dto.Tokens, error)
+	VerifyRefresh(refToken string) (string, error)
+	GenerateAccess(account *entities.Account) (string error)
 }
