@@ -4,3 +4,15 @@ services:
       context: ./backend
     ports:
       - "8080:8080"
+  garage:
+    image: dxflrs/garage:b72b090a097c8ee2711c8fb065d250ed68dcd0bf
+    container_name: garage
+    restart: unless-stopped
+    ports:
+      - "3900:3900" # S3 API
+      - "3901:3901" # RPC
+      - "3902:3902" # Web UI
+    volumes:
+      - ./infra/garage.toml:/etc/garage.toml
+      - ./infra/data:/var/lib/garage
+    command: /garage -c /etc/garage.toml server
