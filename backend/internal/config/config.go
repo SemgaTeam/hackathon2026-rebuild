@@ -12,6 +12,7 @@ import (
 type Config struct {
 	Limits Limits
 	Signing Signing
+	Storage Storage
 	AllowedExtensions map[string]struct{}
 	AllowedMimeTypes map[string]struct{}
 	AllowedOrigins []string
@@ -28,6 +29,15 @@ type (
 	Signing struct {
 		Key string
 		Method jwt.SigningMethod
+	}
+
+	Storage struct {
+		URL string
+		Bucket string
+		AccessKeyID string
+		SecretAccessKey string
+		Region string
+		PresignExpirationSeconds int
 	}
 )
 
@@ -61,6 +71,41 @@ func GetConfig() (*Config, error) {
 		return nil, errors.New("empty SIGNING_KEY")
 	}
 
+	s3Url := os.Getenv("S3_URL")
+	if s3Url == "" {
+		return nil, errors.New("S3_URL is not set")
+	}
+
+	bucket := os.Getenv("S3_BUCKET_NAME")
+	if bucket == "" {
+		return nil, errors.New("S3_BUCKET_NAME is not set")
+	}
+
+	region := os.Getenv("S3_REGION")
+	if region == "" {
+		return nil, errors.New("S3_REGION is not set")
+	}
+
+	accessKeyID := os.Getenv("S3_ACCESS_KEY_ID")
+	if accessKeyID == "" {
+		return nil, errors.New("S3_ACCESS_KEY_ID is not set")
+	}
+
+	secretAccessKey := os.Getenv("S3_SECRET_ACCESS_KEY")
+	if secretAccessKey == "" {
+		return nil, errors.New("S3_SECRET_ACCESS_KEY is not set")
+	}
+
+	presignExpStr := os.Getenv("S3_PRESIGN_EXPIRATION_SECONDS")
+	if presignExpStr == "" {
+		return nil, errors.New("S3_PRESIGN_EXPIRATION_SECONDS is not set")
+	}
+
+	presignExp, err := strconv.Atoi(presignExpStr)
+	if err != nil {
+		return nil, errors.New("S3_PRESIGN_EXPIRATION_SECONDS is invalid")
+	}
+
 	signingMethod := jwt.SigningMethodHS256
 
 	allowedExtensions := map[string]struct{} {
@@ -88,6 +133,14 @@ func GetConfig() (*Config, error) {
 		Signing: Signing{
 			Key: signingKey,
 			Method: signingMethod,
+		},
+		Storage: Storage{
+			URL: s3Url,
+			Bucket: bucket,
+			AccessKeyID: accessKeyID,
+			SecretAccessKey: secretAccessKey,
+			Region: region,
+			PresignExpirationSeconds: presignExp,
 		},
 		AllowedExtensions: allowedExtensions,
 		AllowedMimeTypes: allowedMimeTypes,
