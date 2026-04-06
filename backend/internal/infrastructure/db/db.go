@@ -1,4 +1,4 @@
-package main
+package db
 
 import (
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -7,7 +7,7 @@ import (
 )
 
 func InitDB(ctx context.Context, dsn string) (*pgxpool.Pool, error) {
-	pool, err := pgxpool.New(ctx, dsn)	
+	pool, err := pgxpool.New(ctx, dsn)
 	if err != nil {
 		return nil, err
 	}

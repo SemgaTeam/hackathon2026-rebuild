@@ -1,18 +1,19 @@
 package config
 
 import (
+	"github.com/golang-jwt/jwt/v5"
+	"github.com/labstack/echo/v4"
+
 	"errors"
 	"os"
 	"strconv"
-
-	"github.com/golang-jwt/jwt/v5"
-	"github.com/labstack/echo/v4"
 )
 
 type Config struct {
 	Limits Limits
 	Signing Signing
 	Storage Storage
+	Postgres Postgres
 	AllowedExtensions map[string]struct{}
 	AllowedMimeTypes map[string]struct{}
 	AllowedOrigins []string
@@ -38,6 +39,10 @@ type (
 		SecretAccessKey string
 		Region string
 		PresignExpirationSeconds int
+	}
+
+	Postgres struct {
+		URL string
 	}
 )
 
@@ -141,6 +146,9 @@ func GetConfig() (*Config, error) {
 			SecretAccessKey: secretAccessKey,
 			Region: region,
 			PresignExpirationSeconds: presignExp,
+		},
+		Postgres: Postgres{
+			URL: dsn,
 		},
 		AllowedExtensions: allowedExtensions,
 		AllowedMimeTypes: allowedMimeTypes,

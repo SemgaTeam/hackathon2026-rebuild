@@ -14,7 +14,7 @@ import (
 
 type MediaFileRepository struct {
 	conf *config.Config
-	db *pgxpool.Pool
+	db   *pgxpool.Pool
 }
 
 func NewMediaFileRepository(conf *config.Config, pool *pgxpool.Pool) *MediaFileRepository {
@@ -35,7 +35,7 @@ func (r *MediaFileRepository) Save(ctx context.Context, media *entities.MediaFil
 func (r *MediaFileRepository) Create(ctx context.Context, media *entities.MediaFile) error {
 	var id uuid.UUID
 
-	err := r.db.QueryRow(ctx, 
+	err := r.db.QueryRow(ctx,
 		`INSERT INTO media_files(owner_id, type, file_name, file_path, file_size, mime_type, duration_seconds, created_at, is_deleted) 
 		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		 RETURNING id`,
@@ -51,7 +51,7 @@ func (r *MediaFileRepository) Create(ctx context.Context, media *entities.MediaF
 }
 
 func (r *MediaFileRepository) Update(ctx context.Context, media *entities.MediaFile) error {
-	res, err := r.db.Exec(ctx, 
+	res, err := r.db.Exec(ctx,
 		`UPDATE media_files
 		 SET owner_id = $2,
 				 type = $3,
@@ -76,10 +76,9 @@ func (r *MediaFileRepository) Update(ctx context.Context, media *entities.MediaF
 	return nil
 }
 
-
 func (r *MediaFileRepository) ByID(ctx context.Context, id uuid.UUID) (*entities.MediaFile, error) {
 	var mediaFile entities.MediaFile
-	res := r.db.QueryRow(ctx, 
+	res := r.db.QueryRow(ctx,
 		`SELECT id, owner_id, type, file_name, file_path, file_size, mime_type, duration_seconds, created_at, is_deleted
 		 FROM media_files
 		 WHERE id = $1`,
@@ -96,29 +95,35 @@ func (r *MediaFileRepository) ByID(ctx context.Context, id uuid.UUID) (*entities
 	return &mediaFile, nil
 }
 
-func (r *MediaFileRepository) ByUserID(ctx context.Context, userID uuid.UUID) (*entities.MediaFile, error) {
-	var mediaFile entities.MediaFile
-	res := r.db.QueryRow(ctx, 
+func (r *MediaFileRepository) ByUserID(ctx context.Context, userID uuid.UUID) ([]entities.MediaFile, error) {
+	rows, err := r.db.Query(ctx,
 		`SELECT id, owner_id, type, file_name, file_path, file_size, mime_type, duration_seconds, created_at, is_deleted
 		 FROM media_files
 		 WHERE owner_id = $1`,
 		userID,
 	)
-
-	err := res.Scan(&mediaFile.ID, &mediaFile.OwnerID, &mediaFile.FileName, &mediaFile.FilePath, &mediaFile.FileSize, &mediaFile.MimeType, &mediaFile.DurationSeconds, &mediaFile.CreatedAt, &mediaFile.IsDeleted)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, nil
-		}
 		return nil, e.Unknown(err)
 	}
+	defer rows.Close()
 
-	return &mediaFile, nil
+	var mediaFiles []entities.MediaFile
+
+	for rows.Next() {
+		var f entities.MediaFile
+		err := rows.Scan(&f.ID, &f.OwnerID, &f.Type, &f.FileName, &f.FilePath, &f.FileSize, &f.MimeType, &f.DurationSeconds, &f.CreatedAt, &f.IsDeleted)
+		if err != nil {
+			return nil, e.Unknown(err)
+		}
+		mediaFiles = append(mediaFiles, f)
+	}
+
+	return mediaFiles, nil
 }
 
 func (r *MediaFileRepository) ByPath(ctx context.Context, path string) (*entities.MediaFile, error) {
 	var mediaFile entities.MediaFile
-	res := r.db.QueryRow(ctx, 
+	res := r.db.QueryRow(ctx,
 		`SELECT id, owner_id, type, file_name, file_path, file_size, mime_type, duration_seconds, created_at, is_deleted
 		 FROM media_files
 		 WHERE file_path = $1`,

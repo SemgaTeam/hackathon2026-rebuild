@@ -19,10 +19,10 @@ import (
 )
 
 type Controller struct {
-	conf *config.Config
-	e *echo.Echo
-	saveUC *uc.SaveFileUseCase
-	getFilesUC *uc.GetUserFilesUseCase
+	conf         *config.Config
+	e            *echo.Echo
+	saveUC       *uc.SaveFileUseCase
+	getFilesUC   *uc.GetUserFilesUseCase
 	deleteFileUC *uc.DeleteFileUseCase
 }
 
@@ -34,6 +34,10 @@ func NewHTTPController(conf *config.Config, e *echo.Echo, saveUC *uc.SaveFileUse
 		getFilesUC,
 		deleteFileUC,
 	}
+}
+
+func (ctr *Controller) Start() error {
+	return ctr.e.Start(":8080")
 }
 
 func (ctr *Controller) SetupHandlers() {
@@ -66,7 +70,7 @@ func (ctr *Controller) SetupHandlers() {
 			)
 			return next(c)
 		}
-	}) 
+	})
 
 	files.POST("/upload", ctr.UploadHandler)
 	files.GET("", ctr.GetUserFiles)
@@ -92,7 +96,7 @@ func (ctr *Controller) UploadHandler(c echo.Context) error {
 		return e.Unauthorized("unauthorized")
 	}
 
-	fileHeader, err := c.FormFile("file")	
+	fileHeader, err := c.FormFile("file")
 	if err != nil {
 		return e.BadRequest("file not provided")
 	}
@@ -113,7 +117,7 @@ func (ctr *Controller) UploadHandler(c echo.Context) error {
 
 	ctx := c.Request().Context()
 
-	uploadUrl, _, err := ctr.saveUC.Execute(ctx, fileHeader, userId) 
+	uploadUrl, _, err := ctr.saveUC.Execute(ctx, fileHeader, userId)
 	if err != nil {
 		return err
 	}
@@ -151,7 +155,7 @@ func (ctr *Controller) GetUserFiles(c echo.Context) error {
 		return err
 	}
 
-	response := map[string]interface{} {
+	response := map[string]interface{}{
 		"data": files,
 	}
 
