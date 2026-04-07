@@ -16,5 +16,12 @@ type MediaFile struct {
 	MimeType        string `json:"mime_type"`
 	DurationSeconds int `json:"duration_seconds"`
 	CreatedAt       time.Time `json:"created_at"`
+	Status          mediaFileStatus `json:"status"`
 	IsDeleted       bool `json:"is_deleted"`
 }
+
+type mediaFileStatus string
+
+const StatusPending mediaFileStatus = "pending"
+const StatusUploaded mediaFileStatus = "uploaded"
+const StatusFailed mediaFileStatus = "failed"

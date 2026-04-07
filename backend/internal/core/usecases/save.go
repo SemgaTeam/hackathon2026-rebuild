@@ -57,6 +57,7 @@ func (uc *SaveFileUseCase) Execute(ctx context.Context, fileHeader *multipart.Fi
 		FileSize: fileHeader.Size,
 		MimeType: mimeType,
 		DurationSeconds: int(duration.Seconds()),
+		Status: entities.StatusPending,
 		CreatedAt: time.Now(),
 	}
 
