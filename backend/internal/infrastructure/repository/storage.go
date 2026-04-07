@@ -1,16 +1,19 @@
 package repository
 
 import (
+	"errors"
+
 	c "github.com/SemgaTeam/semga-stream/internal/config"
 	e "github.com/SemgaTeam/semga-stream/internal/core/errors"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 
 	"context"
-	"time"
 	"net/http"
+	"time"
 )
 
 type StorageRepository struct {
@@ -45,6 +48,30 @@ func NewStorageRepository(conf *c.Config) (*StorageRepository, error) {
 		client,
 		presignClient,
 	}, nil
+}
+
+func (r *StorageRepository) FileExists(ctx context.Context, path string) (bool, error) {
+	_, err := r.client.HeadObject(ctx, &s3.HeadObjectInput{
+		Bucket: aws.String(r.conf.Storage.Bucket),
+		Key: aws.String(path),
+	})
+
+	if err == nil {
+		return true, nil
+	}
+
+	var notFound *types.NotFound
+	var noSuchKey *types.NoSuchKey
+
+	if errors.As(err, &notFound) {
+		return false, nil
+	}
+
+	if errors.As(err, &noSuchKey) {
+		return false, nil
+	}
+
+	return false, e.Unknown(err)
 }
 
 func (r *StorageRepository) GenerateUploadURL(ctx context.Context, path string) (string, error) {
