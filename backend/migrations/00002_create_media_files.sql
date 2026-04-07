@@ -10,6 +10,7 @@ CREATE TABLE media_files (
   mime_type        VARCHAR(100) NOT NULL,
   duration_seconds INT,
   created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  status           VARCHAR(10) NOT NULL,
   is_deleted       BOOLEAN NOT NULL DEFAULT FALSE
 );
 
@@ -26,6 +27,11 @@ CHECK (
     OR
     (type = 'video' AND file_size <= 1048576000) -- 1000MB
 );
+
+-- Statuses
+ALTER TABLE media_files
+ADD CONSTRAINT chk_status
+CHECK (type IN ('pending', 'uploaded', 'failed'))
 
 -- Indexes
 CREATE INDEX idx_media_owner ON media_files(owner_id);
