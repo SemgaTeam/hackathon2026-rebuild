@@ -1,16 +1,18 @@
 package usecases
 
 import (
+	"fmt"
+
 	"github.com/SemgaTeam/semga-stream/internal/config"
 	"github.com/SemgaTeam/semga-stream/internal/core/entities"
 	i "github.com/SemgaTeam/semga-stream/internal/core/interfaces"
 	"github.com/google/uuid"
 
+	"context"
 	"mime/multipart"
 	"path/filepath"
 	"strings"
 	"time"
-	"context"
 )
 
 type SaveFileUseCase struct {
@@ -33,7 +35,7 @@ func (uc *SaveFileUseCase) Execute(ctx context.Context, fileHeader *multipart.Fi
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
 	uniqueName := uuid.New().String() + ext
 
-	path := uc.conf.UploadPath + uniqueName
+	path := fmt.Sprintf("%s/%s/%s", uc.conf.UploadPath, ownerId, uniqueName)
 
 	uploadUrl, err := uc.storage.GenerateUploadURL(ctx, path)
 	if err != nil {
