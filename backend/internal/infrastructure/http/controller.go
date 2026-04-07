@@ -1,7 +1,6 @@
 package http
 
 import (
-	"errors"
 
 	"github.com/SemgaTeam/semga-stream/internal/config"
 	"github.com/SemgaTeam/semga-stream/internal/core/entities"
@@ -14,25 +13,35 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 
 	"net/http"
+	"errors"
 	"path/filepath"
 	"strings"
 )
 
 type Controller struct {
-	conf         *config.Config
-	e            *echo.Echo
-	saveUC       *uc.SaveFileUseCase
-	getFilesUC   *uc.GetUserFilesUseCase
-	deleteFileUC *uc.DeleteFileUseCase
+	conf         		 *config.Config
+	e            		 *echo.Echo
+	saveUC       		 *uc.SaveFileUseCase
+	getFilesUC   		 *uc.GetUserFilesUseCase
+	deleteFileUC 		 *uc.DeleteFileUseCase
+	CompleteUploadUC *uc.CompleteUploadUseCase
 }
 
-func NewHTTPController(conf *config.Config, e *echo.Echo, saveUC *uc.SaveFileUseCase, getFilesUC *uc.GetUserFilesUseCase, deleteFileUC *uc.DeleteFileUseCase) *Controller {
+func NewHTTPController(
+	conf 						 *config.Config, 
+	e 							 *echo.Echo, 
+	saveUC           *uc.SaveFileUseCase, 
+	getFilesUC       *uc.GetUserFilesUseCase, 
+	deleteFileUC 		 *uc.DeleteFileUseCase,
+	completeUploadUC *uc.CompleteUploadUseCase,
+) *Controller {
 	return &Controller{
 		conf,
 		e,
 		saveUC,
 		getFilesUC,
 		deleteFileUC,
+		completeUploadUC,
 	}
 }
 
@@ -41,12 +50,7 @@ func (ctr *Controller) Start() error {
 }
 
 func (ctr *Controller) SetupHandlers() {
-	ctr.e.HTTPErrorHandler = errorHandler
-	api := ctr.e.Group("/api")
-	me := api.Group("/me")
-	files := me.Group("/files")
-
-	ctr.e.Use(echojwt.WithConfig(echojwt.Config{
+	accessMiddleware := echojwt.WithConfig(echojwt.Config{
 		SigningKey:    []byte(ctr.conf.Signing.Key),
 		TokenLookup:   "cookie:access_token",
 		ContextKey:    "access_token",
@@ -54,7 +58,12 @@ func (ctr *Controller) SetupHandlers() {
 		NewClaimsFunc: func(c echo.Context) jwt.Claims {
 			return new(entities.Claims)
 		},
-	}))
+	})
+
+	ctr.e.HTTPErrorHandler = errorHandler
+	api := ctr.e.Group("/api")
+	me := api.Group("/me", accessMiddleware)
+	files := api.Group("/files")
 	ctr.e.Use(middleware.AddTrailingSlash())
 	ctr.e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: ctr.conf.AllowedOrigins,
@@ -72,9 +81,11 @@ func (ctr *Controller) SetupHandlers() {
 		}
 	})
 
-	files.POST("/upload", ctr.UploadHandler)
-	files.GET("", ctr.GetUserFiles)
-	files.DELETE("/:id", ctr.DeleteFile)
+	me.POST("/files/upload", ctr.UploadHandler)
+	me.GET("/files", ctr.GetUserFiles)
+	me.DELETE("/file/:id", ctr.DeleteFile)
+
+	files.POST("/:id/complete", ctr.CompleteUploadHandler, accessMiddleware)
 }
 
 func (ctr *Controller) UploadHandler(c echo.Context) error {
@@ -194,6 +205,51 @@ func (ctr *Controller) DeleteFile(c echo.Context) error {
 	ctx := c.Request().Context()
 
 	if err := ctr.deleteFileUC.Execute(ctx, id); err != nil {
+		return err
+	}
+
+	return c.NoContent(http.StatusNoContent)
+}
+
+func (ctr *Controller) CompleteUploadHandler(c echo.Context) error {
+	token, ok := c.Get("access_token").(*jwt.Token)
+	if !ok {
+		return c.JSON(http.StatusUnauthorized, map[string]any{
+			"error": "unauthorized",
+		})
+	}
+
+	claims, ok := token.Claims.(*entities.Claims)
+	if !ok {
+		return e.InternalServerError(errors.New("token claims are invalid"))
+	}
+
+	userIdStr := claims.Subject
+	_, err := uuid.Parse(userIdStr)
+	if err != nil {
+		return e.Unauthorized("unauthorized")
+	}
+
+	idStr := c.Param("id")
+	if idStr == "" {
+		return e.BadRequest("empty id")
+	}
+
+	id, err := uuid.Parse(idStr)
+	if err != nil {
+		return e.BadRequest("invalid id")
+	}
+
+	fileIdStr := c.Param("id")
+
+	fileId, err := uuid.Parse(fileIdStr)
+	if err != nil {
+		return e.BadRequest("invalid file id")
+	}
+
+	ctx := c.Request().Context()
+
+	if err := ctr.CompleteUploadUC.Execute(ctx, id, fileId); err != nil {
 		return err
 	}
 
