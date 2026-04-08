@@ -2,10 +2,12 @@ package interfaces
 
 import (
 	"context"
-	"time"
+
+	"github.com/SemgaTeam/semga-stream/internal/core/entities"
 )
 
 type SessionRepository interface {
-	Save(ctx context.Context, accountID, refToken string, expiresAt time.Time) error
-	Delete(ctx context.Context, refToken string) error
+	FindByToken(ctx context.Context, refTokens string) (*entities.Session, error)
+	Save(ctx context.Context, session *entities.Session) error
+	DeleteByToken(ctx context.Context, refToken string) error
 }

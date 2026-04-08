@@ -6,8 +6,10 @@ import (
 
 	"github.com/SemgaTeam/semga-stream/internal/config"
 	"github.com/SemgaTeam/semga-stream/internal/core/dto"
+	"github.com/SemgaTeam/semga-stream/internal/core/entities"
 	domainErrors "github.com/SemgaTeam/semga-stream/internal/core/errors"
 	"github.com/SemgaTeam/semga-stream/internal/core/interfaces"
+	"github.com/google/uuid"
 )
 
 type LoginDTO struct {
@@ -50,7 +52,20 @@ func (l *LoginUsecase) Execute(ctx context.Context, ld LoginDTO) (dto.Tokens, er
 	}
 
 	exp := time.Now().Add(l.config.RefreshTokenTTL)
-	err = l.sessionRepo.Save(ctx, account.ID, tokens.RefreshToken, exp)
+	// todo Session business entity
+
+	session, err := entities.NewSession(
+		uuid.Nil,
+		account.ID,
+		tokens.RefreshToken,
+		exp,
+		false,
+	)
+	if err != nil {
+		return dto.Tokens{}, err
+	}
+
+	err = l.sessionRepo.Save(ctx, session)
 	if err != nil {
 		return dto.Tokens{}, err
 	}

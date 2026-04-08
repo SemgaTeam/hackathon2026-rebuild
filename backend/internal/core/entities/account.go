@@ -6,6 +6,7 @@ import (
 	"time"
 
 	domainErrors "github.com/SemgaTeam/semga-stream/internal/core/errors"
+	"github.com/google/uuid"
 )
 
 var (
@@ -14,7 +15,7 @@ var (
 )
 
 type Account struct {
-	ID           string
+	ID           uuid.UUID
 	FullName     string
 	Username     string
 	PasswordHash string
@@ -25,7 +26,7 @@ type Account struct {
 
 // Empty id if just created, not from ps, id is filled if it is from persistency storage
 // Creating time defined by client
-func NewAccount(id, fullName, username, passwordHash string, roles []Role, createdAt time.Time) (*Account, error) {
+func NewAccount(id uuid.UUID, fullName, username, passwordHash string, roles []Role, createdAt time.Time) (*Account, error) {
 
 	if !usernameRegex.MatchString(username) {
 		return nil, domainErrors.NewError("invalid username: only latin letters and digits are allowed")

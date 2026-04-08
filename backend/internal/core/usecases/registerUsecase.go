@@ -7,6 +7,7 @@ import (
 	"github.com/SemgaTeam/semga-stream/internal/config"
 	"github.com/SemgaTeam/semga-stream/internal/core/entities"
 	"github.com/SemgaTeam/semga-stream/internal/core/interfaces"
+	"github.com/google/uuid"
 
 	domainErrors "github.com/SemgaTeam/semga-stream/internal/core/errors"
 )
@@ -47,7 +48,7 @@ func (r *RegisterAccountUsecase) Execute(ctx context.Context, a RegisterAccountD
 	roles := []entities.Role{entities.RoleUser}
 
 	// Sent id = "" as account is new! Sent createdAt := time.Now() cause we just register a new account
-	newAccount, err := entities.NewAccount("", a.FullName, a.Username, hashPassword, roles, time.Now())
+	newAccount, err := entities.NewAccount(uuid.Nil, a.FullName, a.Username, hashPassword, roles, time.Now())
 	if err != nil {
 		return "", err
 	}
