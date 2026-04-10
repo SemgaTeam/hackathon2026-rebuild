@@ -63,7 +63,8 @@ func (ctr *Controller) SetupHandlers() {
 	ctr.e.HTTPErrorHandler = errorHandler
 	api := ctr.e.Group("/api")
 	me := api.Group("/me", accessMiddleware)
-	files := api.Group("/files")
+	files := me.Group("/files")
+
 	ctr.e.Use(middleware.AddTrailingSlash())
 	ctr.e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: ctr.conf.AllowedOrigins,
@@ -81,10 +82,9 @@ func (ctr *Controller) SetupHandlers() {
 		}
 	})
 
-	me.POST("/files/upload", ctr.UploadHandler)
-	me.GET("/files", ctr.GetUserFiles)
-	me.DELETE("/file/:id", ctr.DeleteFile)
-
+	files.POST("/upload", ctr.UploadHandler)
+	files.GET("/", ctr.GetUserFiles)
+	files.DELETE("/:id", ctr.DeleteFile)
 	files.POST("/:id/complete", ctr.CompleteUploadHandler, accessMiddleware)
 }
 
@@ -225,19 +225,9 @@ func (ctr *Controller) CompleteUploadHandler(c echo.Context) error {
 	}
 
 	userIdStr := claims.Subject
-	_, err := uuid.Parse(userIdStr)
+	userId, err := uuid.Parse(userIdStr)
 	if err != nil {
 		return e.Unauthorized("unauthorized")
-	}
-
-	idStr := c.Param("id")
-	if idStr == "" {
-		return e.BadRequest("empty id")
-	}
-
-	id, err := uuid.Parse(idStr)
-	if err != nil {
-		return e.BadRequest("invalid id")
 	}
 
 	fileIdStr := c.Param("id")
@@ -249,7 +239,7 @@ func (ctr *Controller) CompleteUploadHandler(c echo.Context) error {
 
 	ctx := c.Request().Context()
 
-	if err := ctr.CompleteUploadUC.Execute(ctx, id, fileId); err != nil {
+	if err := ctr.CompleteUploadUC.Execute(ctx, userId, fileId); err != nil {
 		return err
 	}
 
