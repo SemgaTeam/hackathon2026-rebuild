@@ -14,13 +14,12 @@ import (
 
 	"net/http"
 	"errors"
-	"path/filepath"
-	"strings"
 )
 
 type Controller struct {
 	conf         		 *config.Config
 	e            		 *echo.Echo
+	validateUC       *uc.ValidateFileUseCase
 	saveUC       		 *uc.SaveFileUseCase
 	getFilesUC   		 *uc.GetUserFilesUseCase
 	deleteFileUC 		 *uc.DeleteFileUseCase
@@ -30,6 +29,7 @@ type Controller struct {
 func NewHTTPController(
 	conf 						 *config.Config, 
 	e 							 *echo.Echo, 
+	validateUC 			 *uc.ValidateFileUseCase,
 	saveUC           *uc.SaveFileUseCase, 
 	getFilesUC       *uc.GetUserFilesUseCase, 
 	deleteFileUC 		 *uc.DeleteFileUseCase,
@@ -38,6 +38,7 @@ func NewHTTPController(
 	return &Controller{
 		conf,
 		e,
+		validateUC,
 		saveUC,
 		getFilesUC,
 		deleteFileUC,
@@ -112,21 +113,11 @@ func (ctr *Controller) UploadHandler(c echo.Context) error {
 		return e.BadRequest("file not provided")
 	}
 
-	if fileHeader.Size > ctr.conf.Limits.MaxAudioSize {
-		return e.BadRequest("file too large")
-	}
-
-	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
-	if _, ok := ctr.conf.AllowedExtensions[ext]; !ok {
-		return e.BadRequest("invalid file extension")
-	}
-
-	mimeType := fileHeader.Header.Get("Content-Type")
-	if _, ok := ctr.conf.AllowedMimeTypes[mimeType]; !ok {
-		return e.BadRequest("invalid MIME type")
-	}
-
 	ctx := c.Request().Context()
+
+	if err := ctr.validateUC.Execute(ctx, fileHeader); err != nil {
+		return err
+	}
 
 	uploadUrl, _, err := ctr.saveUC.Execute(ctx, fileHeader, userId)
 	if err != nil {
