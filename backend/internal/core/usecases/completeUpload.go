@@ -2,18 +2,17 @@ package usecases
 
 import (
 	"github.com/SemgaTeam/semga-stream/internal/config"
-	e "github.com/SemgaTeam/semga-stream/internal/core/errors"
 	"github.com/SemgaTeam/semga-stream/internal/core/entities"
+	e "github.com/SemgaTeam/semga-stream/internal/core/errors"
 	i "github.com/SemgaTeam/semga-stream/internal/core/interfaces"
 	"github.com/google/uuid"
 
 	"context"
-	"fmt"
 )
 
 type CompleteUploadUseCase struct {
-	conf *config.Config
-	storage i.IStorage
+	conf      *config.Config
+	storage   i.IStorage
 	mediaFile i.IMediaFile
 }
 
@@ -26,22 +25,20 @@ func NewCompleteUploadUseCase(conf *config.Config, storage i.IStorage, mediaFile
 }
 
 func (uc *CompleteUploadUseCase) Execute(ctx context.Context, ownerId uuid.UUID, fileId uuid.UUID) error {
-	path := fmt.Sprintf("%s/%s/%s", uc.conf.UploadPath, ownerId, fileId)
-	exists, err := uc.storage.FileExists(ctx, path)	
+	file, err := uc.mediaFile.ByID(ctx, fileId)
+	if err != nil {
+		return err
+	}
+	if file == nil {
+		return e.ErrFileNotFound
+	}
+
+	exists, err := uc.storage.FileExists(ctx, file.FilePath)
 	if err != nil {
 		return err
 	}
 
 	if !exists {
-		return e.ErrFileNotFound
-	}
-
-	file, err := uc.mediaFile.ByPath(ctx, path)
-	if err != nil {
-		return err
-	}
-
-	if file == nil {
 		return e.ErrFileNotFound
 	}
 

@@ -1,7 +1,6 @@
 package http
 
 import (
-
 	"github.com/SemgaTeam/semga-stream/internal/config"
 	"github.com/SemgaTeam/semga-stream/internal/core/entities"
 	uc "github.com/SemgaTeam/semga-stream/internal/core/usecases"
@@ -12,27 +11,27 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 
-	"net/http"
 	"errors"
+	"net/http"
 )
 
 type Controller struct {
-	conf         		 *config.Config
-	e            		 *echo.Echo
+	conf             *config.Config
+	e                *echo.Echo
 	validateUC       *uc.ValidateFileUseCase
-	saveUC       		 *uc.SaveFileUseCase
-	getFilesUC   		 *uc.GetUserFilesUseCase
-	deleteFileUC 		 *uc.DeleteFileUseCase
+	saveUC           *uc.SaveFileUseCase
+	getFilesUC       *uc.GetUserFilesUseCase
+	deleteFileUC     *uc.DeleteFileUseCase
 	CompleteUploadUC *uc.CompleteUploadUseCase
 }
 
 func NewHTTPController(
-	conf 						 *config.Config, 
-	e 							 *echo.Echo, 
-	validateUC 			 *uc.ValidateFileUseCase,
-	saveUC           *uc.SaveFileUseCase, 
-	getFilesUC       *uc.GetUserFilesUseCase, 
-	deleteFileUC 		 *uc.DeleteFileUseCase,
+	conf *config.Config,
+	e *echo.Echo,
+	validateUC *uc.ValidateFileUseCase,
+	saveUC *uc.SaveFileUseCase,
+	getFilesUC *uc.GetUserFilesUseCase,
+	deleteFileUC *uc.DeleteFileUseCase,
 	completeUploadUC *uc.CompleteUploadUseCase,
 ) *Controller {
 	return &Controller{

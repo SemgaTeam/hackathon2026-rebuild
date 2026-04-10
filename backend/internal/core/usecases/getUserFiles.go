@@ -1,16 +1,16 @@
 package usecases
 
 import (
-	"context"
-
 	"github.com/SemgaTeam/semga-stream/internal/config"
 	"github.com/SemgaTeam/semga-stream/internal/core/entities"
 	i "github.com/SemgaTeam/semga-stream/internal/core/interfaces"
 	"github.com/google/uuid"
+
+	"context"
 )
 
 type GetUserFilesUseCase struct {
-	conf *config.Config
+	conf      *config.Config
 	mediaFile i.IMediaFile
 }
 

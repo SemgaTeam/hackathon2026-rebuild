@@ -1,14 +1,13 @@
 package usecases
 
 import (
-	"fmt"
-
 	"github.com/SemgaTeam/semga-stream/internal/config"
 	"github.com/SemgaTeam/semga-stream/internal/core/entities"
 	i "github.com/SemgaTeam/semga-stream/internal/core/interfaces"
 	"github.com/google/uuid"
 
 	"context"
+	"fmt"
 	"mime/multipart"
 	"path/filepath"
 	"strings"
@@ -16,9 +15,9 @@ import (
 )
 
 type SaveFileUseCase struct {
-	conf *config.Config
-	storage i.IStorage
-	mediaFile i.IMediaFile
+	conf          *config.Config
+	storage       i.IStorage
+	mediaFile     i.IMediaFile
 	audioAnalyzer i.IAudioAnalyzer
 }
 
@@ -50,15 +49,15 @@ func (uc *SaveFileUseCase) Execute(ctx context.Context, fileHeader *multipart.Fi
 	}
 
 	mediaFile := entities.MediaFile{
-		OwnerID: ownerId,
-		Type: "audio", // only audio by now
-		FileName: filename,
-		FilePath: path,
-		FileSize: fileHeader.Size,
-		MimeType: mimeType,
+		OwnerID:         ownerId,
+		Type:            "audio", // only audio by now
+		FileName:        filename,
+		FilePath:        path,
+		FileSize:        fileHeader.Size,
+		MimeType:        mimeType,
 		DurationSeconds: int(duration.Seconds()),
-		Status: entities.StatusPending,
-		CreatedAt: time.Now(),
+		Status:          entities.StatusPending,
+		CreatedAt:       time.Now(),
 	}
 
 	if err := uc.mediaFile.Save(ctx, &mediaFile); err != nil {
