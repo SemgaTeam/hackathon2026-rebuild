@@ -32,11 +32,13 @@ func main() {
 	mediaFileRepo := repository.NewMediaFileRepository(conf, pool)
 	audioAnalyzer := repository.NewAudioAnalyzer()
 
+	validateUC := usecases.NewValidateFileUseCase(conf)
 	saveUC := usecases.NewSaveFileUseCase(conf, storageRepo, mediaFileRepo, audioAnalyzer)
 	getFilesUC := usecases.NewGetUserFilesUseCase(conf, mediaFileRepo)
 	deleteFileUC := usecases.NewDeleteFileUseCase(conf, mediaFileRepo, storageRepo)
+	completeUploadUC := usecases.NewCompleteUploadUseCase(conf, storageRepo, mediaFileRepo)
 
-	ctr := http.NewHTTPController(conf, e, saveUC, getFilesUC, deleteFileUC)
+	ctr := http.NewHTTPController(conf, e, validateUC, saveUC, getFilesUC, deleteFileUC, completeUploadUC)
 	ctr.SetupHandlers()
 
 	log.Fatal(ctr.Start())
