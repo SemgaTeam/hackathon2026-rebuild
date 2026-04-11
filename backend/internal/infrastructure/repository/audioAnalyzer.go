@@ -20,12 +20,16 @@ func NewAudioAnalyzer() *AudioAnalyzer {
 	return &AudioAnalyzer{}
 }
 
-func (r *AudioAnalyzer) GetDuration(ctx context.Context, fileHeader *multipart.FileHeader) (*time.Duration, error) {
+func (r *AudioAnalyzer) GetDuration(ctx context.Context, fileHeader *multipart.FileHeader) (duration *time.Duration, err error) {
 	file, err := fileHeader.Open()
 	if err != nil {
 		return nil, e.ErrOpeningFile
 	}
-	defer file.Close()
+	defer func(){
+		if cerr := file.Close(); cerr != nil {
+			err = e.Unknown(cerr)
+		}
+	}()
 
 	ext := strings.ToLower(filepath.Ext(fileHeader.Filename))
 
@@ -47,7 +51,7 @@ func (r *AudioAnalyzer) GetDuration(ctx context.Context, fileHeader *multipart.F
 		return nil, e.Unknown(err)
 	}
 
-	duration := time.Duration(streamer.Len()) * time.Second / time.Duration(format.SampleRate)
+	*duration = time.Duration(streamer.Len()) * time.Second / time.Duration(format.SampleRate)
 
-	return &duration, nil
+	return
 }

@@ -17,10 +17,13 @@ func main() {
 
 	conf, err := config.GetConfig()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	pool, err := db.InitDB(ctx, conf.Postgres.URL)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	e := echo.New()
 

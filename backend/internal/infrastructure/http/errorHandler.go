@@ -1,10 +1,11 @@
 package http
 
 import (
-	"errors"
-
 	e "github.com/SemgaTeam/semga-stream/internal/infrastructure/http/errors"
+
 	"github.com/labstack/echo/v4"
+	"errors"
+	"log"
 )
 
 func errorHandler(err error, c echo.Context) {
@@ -20,8 +21,10 @@ func errorHandler(err error, c echo.Context) {
 	}
 
 	if !c.Response().Committed {
-		c.JSON(httpErr.Code, map[string]string{
+		if err := c.JSON(httpErr.Code, map[string]string{
 			"error": httpErr.Msg,
-		})
+		}); err != nil {
+			log.Printf("error: %s", err)
+		}
 	}
 }
