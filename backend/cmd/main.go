@@ -20,6 +20,10 @@ func main() {
 		log.Fatal(err)
 	}
 
+	if err := db.RunMigrations(&conf.Postgres, "migrations"); err != nil {
+		log.Fatal(err)
+	}
+
 	pool, err := db.InitDB(ctx, conf.Postgres.URL)
 	if err != nil {
 		log.Fatal(err)

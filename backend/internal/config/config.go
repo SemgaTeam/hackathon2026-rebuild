@@ -47,68 +47,54 @@ type (
 )
 
 func GetConfig() (*Config, error) {
-	dsn := os.Getenv("POSTGRES_URL")
-	if dsn == "" {
-		return nil, errors.New("POSTGRES_URL is not set")
-	}
-
-	audioSizeStr := os.Getenv("MAX_AUDIO_SIZE")
-	if audioSizeStr == "" {
-		return nil, errors.New("MAX_AUDIO_SIZE is not set")
-	}
-	audioSize, err := strconv.ParseInt(audioSizeStr, 10, 64)
+	dsn, err := MustEnvString("POSTGRES_URL")
 	if err != nil {
-		return nil, errors.New("MAX_AUDIO_SIZE is invalid")
+		return nil, err
 	}
 
-	videoSizeStr := os.Getenv("MAX_VIDEO_SIZE")
-	if videoSizeStr == "" {
-		return nil, errors.New("MAX_VIDEO_SIZE is not set")
-	}
-
-	videoSize, err := strconv.ParseInt(videoSizeStr, 10, 64)
+	audioSize, err := EnvWithDefaultInt64("MAX_AUDIO_SIZE", 50 * 1024 * 1024)
 	if err != nil {
-		return nil, errors.New("MAX_VIDEO_SIZE is invalid")
+		return nil, err
 	}
 
-	signingKey := os.Getenv("SIGNING_KEY")
-	if signingKey == "" {
-		return nil, errors.New("empty SIGNING_KEY")
-	}
-
-	s3Url := os.Getenv("S3_URL")
-	if s3Url == "" {
-		return nil, errors.New("S3_URL is not set")
-	}
-
-	bucket := os.Getenv("S3_BUCKET_NAME")
-	if bucket == "" {
-		return nil, errors.New("S3_BUCKET_NAME is not set")
-	}
-
-	region := os.Getenv("S3_REGION")
-	if region == "" {
-		return nil, errors.New("S3_REGION is not set")
-	}
-
-	accessKeyID := os.Getenv("S3_ACCESS_KEY_ID")
-	if accessKeyID == "" {
-		return nil, errors.New("S3_ACCESS_KEY_ID is not set")
-	}
-
-	secretAccessKey := os.Getenv("S3_SECRET_ACCESS_KEY")
-	if secretAccessKey == "" {
-		return nil, errors.New("S3_SECRET_ACCESS_KEY is not set")
-	}
-
-	presignExpStr := os.Getenv("S3_PRESIGN_EXPIRATION_SECONDS")
-	if presignExpStr == "" {
-		return nil, errors.New("S3_PRESIGN_EXPIRATION_SECONDS is not set")
-	}
-
-	presignExp, err := strconv.Atoi(presignExpStr)
+	videoSize, err := EnvWithDefaultInt64("MAX_VIDEO_SIZE", 100 * 1024 * 1024)
 	if err != nil {
-		return nil, errors.New("S3_PRESIGN_EXPIRATION_SECONDS is invalid")
+		return nil, err
+	}
+
+	signingKey, err := MustEnvString("SIGNING_KEY")
+	if err != nil {
+		return nil, err
+	}
+
+	s3Url, err := MustEnvString("S3_URL")
+	if err != nil {
+		return nil, err
+	}
+
+	bucket, err := MustEnvString("S3_BUCKET_NAME")
+	if err != nil {
+		return nil, err
+	}
+
+	region, err := MustEnvString("S3_REGION")
+	if err != nil {
+		return nil, err
+	}
+
+	accessKeyID, err := MustEnvString("S3_ACCESS_KEY_ID")
+	if err != nil {
+		return nil, err
+	}
+
+	secretAccessKey, err := MustEnvString("S3_SECRET_ACCESS_KEY")
+	if err != nil {
+		return nil, err
+	}
+
+	presignExp, err := EnvWithDefaultInt("S3_PRESIGN_EXPIRATION_SECONDS", 5 * 60)
+	if err != nil {
+		return nil, err
 	}
 
 	signingMethod := jwt.SigningMethodHS256
@@ -127,7 +113,7 @@ func GetConfig() (*Config, error) {
 	allowedOrigins := []string {"http://localhost:5173"} // TODO: get in env variable
 	allowedHeaders := []string {echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept}
 
-	uploadPath := "uploads"
+	uploadPath := EnvWithDefaultString("S3_UPLOAD_PATH", "uploads")
 
 
 	conf := Config{
@@ -158,4 +144,51 @@ func GetConfig() (*Config, error) {
 	}
 
 	return &conf, nil
+}
+
+func MustEnvString(name string) (string, error) {
+	value := os.Getenv(name)
+	if value == "" {
+		return "", errors.New(name + " is not set")
+	}
+	return value, nil
+}
+
+func EnvWithDefaultInt64(name string, defaultValue int64) (int64, error) {
+	var value = defaultValue
+	var err error
+	valueStr := os.Getenv(name)
+	if valueStr != "" {
+		value, err = strconv.ParseInt(valueStr, 10, 64)
+		if err != nil {
+			return 0, errors.New(name + " is invalid")
+		}
+	}
+
+	return value, nil
+}
+
+func EnvWithDefaultInt(name string, defaultValue int) (int, error) {
+	var value = defaultValue
+	var err error
+	valueStr := os.Getenv(name)
+	if valueStr != "" {
+		value, err = strconv.Atoi(valueStr)
+		if err != nil {
+			return 0, errors.New(name + " is invalid")
+		}
+	}
+
+	return value, nil
+}
+
+func EnvWithDefaultString(name string, defaultValue string) string {
+	var value = defaultValue
+
+	valueStr := os.Getenv(name)
+	if valueStr != "" {
+		value = valueStr
+	}
+
+	return value
 }

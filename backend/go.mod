@@ -13,6 +13,7 @@ require (
 	github.com/jackc/pgx/v5 v5.9.1
 	github.com/labstack/echo-jwt/v4 v4.4.0
 	github.com/labstack/echo/v4 v4.15.0
+	github.com/pressly/goose v2.7.0+incompatible
 )
 
 require (

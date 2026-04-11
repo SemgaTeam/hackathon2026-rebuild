@@ -31,7 +31,7 @@ CHECK (
 -- Statuses
 ALTER TABLE media_files
 ADD CONSTRAINT chk_status
-CHECK (type IN ('pending', 'uploaded', 'failed'))
+CHECK (type IN ('pending', 'uploaded', 'failed'));
 
 -- Indexes
 CREATE INDEX idx_media_owner ON media_files(owner_id);
