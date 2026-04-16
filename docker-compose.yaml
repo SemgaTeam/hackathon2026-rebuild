@@ -21,6 +21,7 @@ services:
       garage:
         condition:
           service_healthy
+
   db:
     image: postgres:18.1-alpine
     restart: unless-stopped
@@ -37,6 +38,7 @@ services:
       retries: 5
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
   garage:
     image: dxflrs/garage:b72b090a097c8ee2711c8fb065d250ed68dcd0bf
     container_name: garage
@@ -55,5 +57,45 @@ services:
       timeout: 5s
       retries: 5
       start_period: 15s
+
+  test-db:
+    image: postgres:18.1-alpine
+    profiles: ["test"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+      POSTGRES_DB: semga_test
+    ports:
+      - "55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test_user -d semga_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+
+  test-garage:
+    image: dxflrs/garage:b72b090a097c8ee2711c8fb065d250ed68dcd0bf
+    profiles: ["test"]
+    restart: unless-stopped
+    command: /garage -c /etc/garage.toml server
+    ports:
+      - "59000:3900"
+      - "59001:3901"
+      - "59002:3902"
+    healthcheck:
+      test: ["CMD", "/garage", "-c", "/etc/garage.toml", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    volumes:
+      - ./infra/garage-test.toml:/etc/garage.toml
+      - garage_test_data:/var/lib/garage
+
 volumes:
   postgres_data:
+  postgres_test_data:
+  garage_test_data:

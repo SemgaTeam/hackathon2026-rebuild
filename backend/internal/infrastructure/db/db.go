@@ -38,5 +38,5 @@ func RunMigrations(conf *config.Postgres, migrationsPath string) (err error) {
 		return err
 	}
 
-	return nil
+	return
 }

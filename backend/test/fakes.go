@@ -1,4 +1,4 @@
-package usecases_test
+package test
 
 import (
 	"github.com/SemgaTeam/semga-stream/internal/core/entities"

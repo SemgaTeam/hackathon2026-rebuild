@@ -36,10 +36,10 @@ func (r *MediaFileRepository) Create(ctx context.Context, media *entities.MediaF
 	var id uuid.UUID
 
 	err := r.db.QueryRow(ctx,
-		`INSERT INTO media_files(owner_id, type, file_name, file_path, file_size, mime_type, duration_seconds, created_at, is_deleted) 
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+		`INSERT INTO media_files(owner_id, type, file_name, file_path, file_size, mime_type, duration_seconds, created_at, status, is_deleted) 
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		 RETURNING id`,
-		media.OwnerID, media.Type, media.FileName, media.FilePath, media.FileSize, media.MimeType, media.DurationSeconds, media.CreatedAt, media.IsDeleted,
+		media.OwnerID, media.Type, media.FileName, media.FilePath, media.FileSize, media.MimeType, media.DurationSeconds, media.CreatedAt, media.Status, media.IsDeleted,
 	).Scan(&id)
 	if err != nil {
 		return e.Unknown(err)
@@ -61,9 +61,10 @@ func (r *MediaFileRepository) Update(ctx context.Context, media *entities.MediaF
 				 mime_type = $7,
 				 duration_seconds = $8,
 				 created_at = $9,
-				 is_deleted = $10
+				 status = $10,
+				 is_deleted = $11
 		 WHERE id = $1`,
-		media.ID, media.OwnerID, media.FileName, media.FilePath, media.FileSize, media.MimeType, media.DurationSeconds, media.CreatedAt, media.IsDeleted,
+		media.ID, media.OwnerID, media.Type, media.FileName, media.FilePath, media.FileSize, media.MimeType, media.DurationSeconds, media.CreatedAt, media.Status, media.IsDeleted,
 	)
 	if err != nil {
 		return e.Unknown(err)
@@ -79,12 +80,12 @@ func (r *MediaFileRepository) Update(ctx context.Context, media *entities.MediaF
 func (r *MediaFileRepository) ByID(ctx context.Context, id uuid.UUID) (*entities.MediaFile, error) {
 	var mediaFile entities.MediaFile
 	res := r.db.QueryRow(ctx,
-		`SELECT id, owner_id, type, file_name, file_path, file_size, mime_type, duration_seconds, created_at, is_deleted
+		`SELECT id, owner_id, type, file_name, file_path, file_size, mime_type, duration_seconds, created_at, is_deleted, status
 		 FROM media_files
 		 WHERE id = $1`,
 		id,
 	)
-	err := res.Scan(&mediaFile.ID, &mediaFile.OwnerID, &mediaFile.FileName, &mediaFile.FilePath, &mediaFile.FileSize, &mediaFile.MimeType, &mediaFile.DurationSeconds, &mediaFile.CreatedAt, &mediaFile.IsDeleted)
+	err := res.Scan(&mediaFile.ID, &mediaFile.OwnerID, &mediaFile.Type, &mediaFile.FileName, &mediaFile.FilePath, &mediaFile.FileSize, &mediaFile.MimeType, &mediaFile.DurationSeconds, &mediaFile.CreatedAt, &mediaFile.IsDeleted, &mediaFile.Status)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
@@ -97,7 +98,7 @@ func (r *MediaFileRepository) ByID(ctx context.Context, id uuid.UUID) (*entities
 
 func (r *MediaFileRepository) ByUserID(ctx context.Context, userID uuid.UUID) ([]entities.MediaFile, error) {
 	rows, err := r.db.Query(ctx,
-		`SELECT id, owner_id, type, file_name, file_path, file_size, mime_type, duration_seconds, created_at, is_deleted
+		`SELECT id, owner_id, type, file_name, file_path, file_size, mime_type, duration_seconds, created_at, is_deleted, status
 		 FROM media_files
 		 WHERE owner_id = $1`,
 		userID,
@@ -111,7 +112,7 @@ func (r *MediaFileRepository) ByUserID(ctx context.Context, userID uuid.UUID) ([
 
 	for rows.Next() {
 		var f entities.MediaFile
-		err := rows.Scan(&f.ID, &f.OwnerID, &f.Type, &f.FileName, &f.FilePath, &f.FileSize, &f.MimeType, &f.DurationSeconds, &f.CreatedAt, &f.IsDeleted)
+		err := rows.Scan(&f.ID, &f.OwnerID, &f.Type, &f.FileName, &f.FilePath, &f.FileSize, &f.MimeType, &f.DurationSeconds, &f.CreatedAt, &f.IsDeleted, &f.Status)
 		if err != nil {
 			return nil, e.Unknown(err)
 		}
@@ -124,13 +125,13 @@ func (r *MediaFileRepository) ByUserID(ctx context.Context, userID uuid.UUID) ([
 func (r *MediaFileRepository) ByPath(ctx context.Context, path string) (*entities.MediaFile, error) {
 	var mediaFile entities.MediaFile
 	res := r.db.QueryRow(ctx,
-		`SELECT id, owner_id, type, file_name, file_path, file_size, mime_type, duration_seconds, created_at, is_deleted
+		`SELECT id, owner_id, type, file_name, file_path, file_size, mime_type, duration_seconds, created_at, is_deleted, status
 		 FROM media_files
 		 WHERE file_path = $1`,
 		path,
 	)
 
-	err := res.Scan(&mediaFile.ID, &mediaFile.OwnerID, &mediaFile.FileName, &mediaFile.FilePath, &mediaFile.FileSize, &mediaFile.MimeType, &mediaFile.DurationSeconds, &mediaFile.CreatedAt, &mediaFile.IsDeleted)
+	err := res.Scan(&mediaFile.ID, &mediaFile.OwnerID, &mediaFile.Type, &mediaFile.FileName, &mediaFile.FilePath, &mediaFile.FileSize, &mediaFile.MimeType, &mediaFile.DurationSeconds, &mediaFile.CreatedAt, &mediaFile.IsDeleted, &mediaFile.Status)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil

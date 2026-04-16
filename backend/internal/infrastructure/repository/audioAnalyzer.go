@@ -25,7 +25,7 @@ func (r *AudioAnalyzer) GetDuration(ctx context.Context, fileHeader *multipart.F
 	if err != nil {
 		return nil, e.ErrOpeningFile
 	}
-	defer func(){
+	defer func() {
 		if cerr := file.Close(); cerr != nil {
 			err = e.Unknown(cerr)
 		}
@@ -51,7 +51,8 @@ func (r *AudioAnalyzer) GetDuration(ctx context.Context, fileHeader *multipart.F
 		return nil, e.Unknown(err)
 	}
 
-	*duration = time.Duration(streamer.Len()) * time.Second / time.Duration(format.SampleRate)
+	value := time.Duration(streamer.Len()) * time.Second / time.Duration(format.SampleRate)
+	duration = &value
 
 	return
 }
