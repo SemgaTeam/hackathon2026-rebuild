@@ -3,7 +3,8 @@
 
 # Запуск
 1. Задать переменные окружения в `.env` (пример в `.env.example`)
-2. `docker compose up --build`
+2. Написать `infra/garage.toml` (пример в `infra/garage-example.toml`)
+3. `docker compose up --build`
 
 # Тестирование
 В `backend/test/fakes.go` распологаются все фейковые реализации интерфейсов.
