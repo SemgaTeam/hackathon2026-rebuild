@@ -1,9 +1,9 @@
 package entities
 
 import (
-	"time"
-
 	"github.com/google/uuid"
+
+	"time"
 )
 
 type Playlist struct {
@@ -12,4 +12,5 @@ type Playlist struct {
 	Name string
 	CreatedAt time.Time
 	IsDeleted bool
+	Tracks []MediaFile
 }
