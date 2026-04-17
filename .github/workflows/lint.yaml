@@ -8,6 +8,9 @@ jobs:
   golangci:
     name: golangci-lint
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
 
     steps:
       - name: Checkout
@@ -16,7 +19,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version-file: backend/go.mod
+          go-version-file: go.mod
           cache: true
 
       - name: Install golangci-lint
