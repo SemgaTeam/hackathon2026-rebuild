@@ -8,6 +8,7 @@ import (
 )
 
 type IPlaylist interface {
+	Save(ctx context.Context, playlist *entities.Playlist) error
 	AllByOwnerID(ctx context.Context, ownerID uuid.UUID) ([]entities.Playlist, error)
 	GetPlaylistTracks(ctx context.Context, playlistID uuid.UUID) ([]entities.MediaFile, error)
 }

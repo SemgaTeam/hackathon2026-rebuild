@@ -38,3 +38,16 @@ func (uc *PlaylistsUseCase) GetUserPlaylists(ctx context.Context, userID uuid.UU
 
 	return playlists, nil
 }
+
+func (uc *PlaylistsUseCase) CreatePlaylist(ctx context.Context, ownerID uuid.UUID, name string) error {
+	playlist, err := entities.NewPlaylist(ownerID, name)
+	if err != nil {
+		return err
+	}
+
+	if err := uc.playlist.Save(ctx, playlist); err != nil {
+		return err
+	}
+
+	return nil
+}
