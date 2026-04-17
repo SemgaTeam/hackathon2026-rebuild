@@ -28,6 +28,10 @@ func (uc *PlaylistsUseCase) GetUserPlaylists(ctx context.Context, userID uuid.UU
 	}
 
 	for i := range playlists {
+		if playlists[i].IsDeleted {
+			continue
+		}
+
 		tracks, err := uc.playlist.GetPlaylistTracks(ctx, playlists[i].ID)	
 		if err != nil {
 			return nil, err
@@ -44,6 +48,25 @@ func (uc *PlaylistsUseCase) CreatePlaylist(ctx context.Context, ownerID uuid.UUI
 	if err != nil {
 		return err
 	}
+
+	if err := uc.playlist.Save(ctx, playlist); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (uc *PlaylistsUseCase) DeletePlaylist(ctx context.Context, playlistID uuid.UUID) error {
+	playlist, err := uc.playlist.ByID(ctx, playlistID)
+	if err != nil {
+		return err
+	}
+
+	if playlist == nil {
+		return nil
+	}
+
+	playlist.IsDeleted = true	
 
 	if err := uc.playlist.Save(ctx, playlist); err != nil {
 		return err
