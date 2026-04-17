@@ -32,3 +32,13 @@ func NewPlaylist(ownerID uuid.UUID, name string) (*Playlist, error) {
 
 	return &playlist, nil
 }
+
+func (p *Playlist) Update(name string) error {
+	if name == "" {
+		return e.ErrInvalidName
+	}
+
+	p.Name = name
+
+	return nil
+}

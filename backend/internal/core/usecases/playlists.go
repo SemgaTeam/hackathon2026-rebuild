@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"github.com/SemgaTeam/semga-stream/internal/config"
+	e "github.com/SemgaTeam/semga-stream/internal/core/errors"
 	"github.com/SemgaTeam/semga-stream/internal/core/entities"
 	i "github.com/SemgaTeam/semga-stream/internal/core/interfaces"
 	"github.com/google/uuid"
@@ -69,6 +70,27 @@ func (uc *PlaylistsUseCase) DeletePlaylist(ctx context.Context, playlistID uuid.
 	playlist.IsDeleted = true	
 
 	if err := uc.playlist.Save(ctx, playlist); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (uc *PlaylistsUseCase) RenamePlaylist(ctx context.Context, playlistID uuid.UUID, name string) error {
+	playlist, err := uc.playlist.ByID(ctx, playlistID)	
+	if err != nil {
+		return err
+	}
+
+	if playlist == nil {
+		return e.ErrPlaylistNotFound
+	}
+
+	if err = playlist.Update(name); err != nil {
+		return err
+	}
+
+	if err = uc.playlist.Save(ctx, playlist); err != nil {
 		return err
 	}
 
