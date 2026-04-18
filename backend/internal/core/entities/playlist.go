@@ -13,7 +13,7 @@ type Playlist struct {
 	Name string
 	CreatedAt time.Time
 	IsDeleted bool
-	Tracks []MediaFile
+	Tracks PlaylistItems
 }
 
 func NewPlaylist(ownerID uuid.UUID, name string) (*Playlist, error) {

@@ -11,14 +11,16 @@ import (
 )
 
 type PlaylistsUseCase struct {
-	conf     *config.Config
-	playlist i.IPlaylist	
+	conf      *config.Config
+	playlist  i.IPlaylist	
+	mediaFile i.IMediaFile
 }
 
-func NewPlaylistsUseCase(conf *config.Config, playlistInterface i.IPlaylist) *PlaylistsUseCase {
+func NewPlaylistsUseCase(conf *config.Config, playlistInterface i.IPlaylist, mediaFileInterface i.IMediaFile) *PlaylistsUseCase {
 	return &PlaylistsUseCase{
 		conf: conf,
 		playlist: playlistInterface,
+		mediaFile: mediaFileInterface,
 	}	
 }
 
@@ -38,7 +40,7 @@ func (uc *PlaylistsUseCase) GetUserPlaylists(ctx context.Context, userID uuid.UU
 			return nil, err
 		}
 
-		playlists[i].Tracks = tracks
+		playlists[i].Tracks = *tracks
 	}
 
 	return playlists, nil
@@ -95,4 +97,43 @@ func (uc *PlaylistsUseCase) RenamePlaylist(ctx context.Context, playlistID uuid.
 	}
 
 	return nil
+}
+
+func (uc *PlaylistsUseCase) AddTrackToEnd(ctx context.Context, playlistID, fileID uuid.UUID) (*entities.Playlist, error) {
+	playlist, err := uc.playlist.ByID(ctx, playlistID)	
+	if err != nil {
+		return nil, err
+	}
+
+	if playlist == nil {
+		return nil, e.ErrPlaylistNotFound
+	}
+
+	tracks, err := uc.playlist.GetPlaylistTracks(ctx, playlist.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	file, err := uc.mediaFile.ByID(ctx, fileID)
+	if err != nil {
+		return nil, err
+	}
+
+	if file == nil {
+		return nil, e.ErrFileNotFound
+	}
+
+	track := entities.PlaylistItem{
+		MediaFileID: file.ID,
+	}
+
+	if err := tracks.AddToEnd(track); err != nil {
+		return nil, err
+	}
+
+	if err := uc.playlist.Save(ctx, playlist); err != nil {
+		return nil, err
+	}
+
+	return playlist, nil
 }
