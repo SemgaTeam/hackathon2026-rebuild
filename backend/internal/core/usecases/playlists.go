@@ -162,3 +162,24 @@ func (uc *PlaylistsUseCase) DeletePlaylistItemByIndex(ctx context.Context, playl
 
 	return nil
 }
+
+func (uc *PlaylistsUseCase) MoveItem(ctx context.Context, playlistID uuid.UUID, from, to int) error {
+	playlist, err := uc.playlist.ByID(ctx, playlistID)
+	if err != nil {
+		return err
+	}
+
+	if playlist == nil {
+		return e.ErrPlaylistNotFound
+	}
+
+	if err = playlist.Tracks.Move(from, to); err != nil {
+		return err
+	}
+
+	if err = uc.playlist.Save(ctx, playlist); err != nil {
+		return err
+	}
+
+	return nil
+}
