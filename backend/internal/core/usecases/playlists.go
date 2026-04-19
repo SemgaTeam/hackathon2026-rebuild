@@ -123,6 +123,10 @@ func (uc *PlaylistsUseCase) AddTrackToEnd(ctx context.Context, playlistID, fileI
 		return nil, e.ErrFileNotFound
 	}
 
+	if playlist.OwnerID != file.OwnerID {
+		return nil, e.ErrPlaylistAndFileOwnersNotMatch
+	}
+
 	track := entities.PlaylistItem{
 		MediaFileID: file.ID,
 	}
