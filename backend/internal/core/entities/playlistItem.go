@@ -14,13 +14,13 @@ type PlaylistItem struct {
 }
 
 type PlaylistItems struct {
-	playlistID uuid.UUID
-	items []PlaylistItem
+	PlaylistID uuid.UUID
+	items      []PlaylistItem
 }
 
 func NewPlaylistItems(playlistID uuid.UUID) *PlaylistItems {
 	return &PlaylistItems{
-		playlistID: playlistID,
+		PlaylistID: playlistID,
 		items: []PlaylistItem{},
 	}
 }
@@ -73,4 +73,18 @@ func (p *PlaylistItems) SortByPosition() {
 	slices.SortFunc(p.items, func(a, b PlaylistItem) int {
 		return a.Position - b.Position
 	})
+}
+
+func (p *PlaylistItems) DeleteByIndex(idx int) error {
+	if idx < 0 || idx >= len(p.items) {
+		return e.ErrInvalidDeleteRange
+	}
+
+	p.items = slices.Delete(p.items, idx, idx+1)
+
+	for i := range p.items {
+		p.items[i].Position = i
+	}
+
+	return nil
 }
