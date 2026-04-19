@@ -137,3 +137,24 @@ func (uc *PlaylistsUseCase) AddTrackToEnd(ctx context.Context, playlistID, fileI
 
 	return playlist, nil
 }
+
+func (uc *PlaylistsUseCase) DeletePlaylistItemByIndex(ctx context.Context, playlistID uuid.UUID, idx int) error {
+	playlist, err := uc.playlist.ByID(ctx, playlistID)
+	if err != nil {
+		return err
+	}
+
+	if playlist == nil {
+		return e.ErrPlaylistNotFound
+	}
+
+	if err = playlist.Tracks.DeleteByIndex(idx); err != nil {
+		return err
+	}
+
+	if err = uc.playlist.Save(ctx, playlist); err != nil {
+		return err
+	}
+
+	return nil
+}
