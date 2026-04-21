@@ -128,6 +128,7 @@ func (uc *PlaylistsUseCase) AddTrackToEnd(ctx context.Context, playlistID, fileI
 	}
 
 	track := entities.PlaylistItem{
+		PlaylistID: playlist.ID,
 		MediaFileID: file.ID,
 	}
 
